@@ -1,0 +1,210 @@
+/*	
+-----------------------------------------------------------------------------------------------------------
+	Name:  Sudheer Kumar Vavilapalli.
+	ID:	   109203795
+	email: svavilapalli@cs.stonybrook.edu, 
+		   sudheerkumar.vavilapalli@stonybrook.edu
+-----------------------------------------------------------------------------------------------------------
+I pledge my honor that all parts of this project were done by me alone
+and without collaboration with anybody else.
+-----------------------------------------------------------------------------------------------------------
+Relations Used: 4
+	1. LinkedOut(URL,UserName).
+		Key: URL1, UserName. 
+		No two Users have same UserName.
+		This relation is not at all used in writing queries.
+		Just maintains the list of all the users.
+		
+	2. user(UserName, Organization, JoinDate,Enddate).
+		key: UserName, Organization, JoinDate, Enddate.
+		since, there is a multivalued dependency the key is set of all attributes.
+		This relation has the information about the user with his/her name, organization, join date and end date.
+		
+	3. skills(UserName,SkillName).
+		key: UserName, SkillName
+		This relation has information about User and his/her skills.
+		
+	4. endorse(UserName1, UserName2, EndorsedSkill).
+		key: UserName1, UserName2, EndorsedSkill.
+		This relation has information about UserName1 who endorsed UserName2 a skill(EndorsedSkill).
+----------------------------------------------------------------------------------------------------------------
+*/
+:-auto_table.
+
+/* Relation 1 (Just to maintain the list of the existing Users)*/
+linkedOut('URL1','Alice').
+linkedOut('URL2','Bob').
+linkedOut('URL3','Carol').
+linkedOut('URL4','Dave').
+linkedOut('URL5','Eve').
+linkedOut('URL6','Frank').
+linkedOut('URL7','Mallory').
+linkedOut('URL8','Thor').
+
+/*Relation 2: user(UserName, Organization, JoinDate, Enddate)*/
+user('Alice','stonybrook',20130101,20130930).
+user('Bob','stonybrook',20130801,20131231).
+user('Bob','microsoft',20140101,20141231).
+user('Carol','ibm',20130601,20131231).
+user('Dave','ibm',20130601, 20130715).
+user('Eve','google',20120401, 20140201).
+user('Eve','paypal',20080501, 20120301).
+user('Frank','google',20120601, 20140101).
+user('Frank','ebay',20061205, 20120520).
+user('Mallory','oracle',20080830,20140330).
+user('Mallory','paypal',20080105,20120301).
+user('Mallory','ebay',20061205,20071220).
+user('Thor','asgard',00000101,99991231).
+
+/*Relation 3: skills(UserName, SkillName) */
+skills('Alice','programming').
+skills('Alice','instructor').
+skills('Bob','programming').
+skills('Dave','programming').
+skills('Frank','programming').
+skills('Mallory','programming').
+skills('Mallory','basketball').
+skills('Thor','programming').
+skills('Thor','instructor').
+skills('Thor','hammerwielding').
+
+/*Relation 4: endorse(UserName1, UserName2, EndorsedSkill)*/
+endorse('Bob','Alice','programming').
+endorse('Bob','Alice','instructor').
+endorse('Bob','Carol','programming').
+endorse('Carol','Alice','programming').
+endorse('Carol','Bob','programming').
+endorse('Dave','Carol','programming').
+endorse('Frank','Eve','programming').
+endorse('Frank','Eve','qualityassurance').
+endorse('Mallory','Eve','programming').
+endorse('Mallory','Frank','programming').
+endorse('Mallory','Mallory','programming').
+endorse('Thor','Dave','programming').
+
+/*--------------------------------------------------------------------------------------------------------
+	To Avoid duplication in the results of the queries
+----------------------------------------------------------------------------------------------------------*/
+:-table query1/2.
+:-table query2/2.
+:-table query3/1.
+:-table more_skilled/2.
+:-table indirect_endorse/2.
+:-table more_certified/2.
+:-table indirect_endorse_skill/2.
+
+/*---------------------------------------------------------------------------------------------------------
+Query1: Checks if User1 endorsed User2 and User1 and User2 are in same organization on 09/18/2013
+--------------------------------------------------------------------------------------------------------*/
+query1(User1,User2):-
+	endorse(User1,User2,_Skill),
+	user(User1,Org,Jdate,Edate),
+	user(User2,Org,Jdate1,Edate1),
+	Jdate < 20130918, Edate > 20130918,
+	Jdate1 < 20130918, Edate1 > 20130918,
+	User1\=User2.
+	
+?-write('\n'),write('Query 1'),write('\n').
+?-query1(X,Y),write('\t'),write(X),write(' endorses '),write(Y),write('\n'),fail.
+
+/*---------------------------------------------------------------------------------------------------------
+Query2: checks if User1 endorsed User2 for a Skill that User1 also has and endorsed by third user for that
+same Skill.
+-----------------------------------------------------------------------------------------------------------*/	
+query2(User1,User2):-
+	endorse(User1,User2,Skill),
+	skills(User1,Skill),
+	endorse(User3,User1,Skill),
+	endorse(User3,User2,Skill),
+	User1\=User2,
+	User1\=User3,
+	User2\=User3.
+	
+?-write('\n'),write('Query 2'),write('\n').
+?-query2(X,Y),write('\t'),write(X),write(' endorses '),write(Y),write('\n'),fail.
+
+/*---------------------------------------------------------------------------------------------------------
+Query3: Finds all Users who do not have a certain skill, but endorsed by atleast two other users.
+-----------------------------------------------------------------------------------------------------------*/
+query3(User):-
+	endorse(User1,User,Skill),
+	endorse(User2,User,Skill),
+	User1\=User2,
+	User1\=User,
+	User2\=User,
+	tnot(skills(User,Skill)).
+
+?-write('\n'),write('Query 3'),write('\n').
+?-query3(X),write('\n'),write('\t'),write(X),write('\n'),fail.
+
+/*---------------------------------------------------------------------------------------------------------
+Query4: Finds pairs of u1,u2 such that u1 is more skilled than u2 following the given criterion.
+-----------------------------------------------------------------------------------------------------------*/
+/*Skills that are present in user2 but not present in user1*/
+skills_notin1_butin2(User1,User2):-
+	skills(_,Skill),
+	tnot(skills(User1,Skill)),skills(User2,Skill).
+	
+more_skilled(User1,User2):-
+	user(User1,_org1,_jdate1,_edate1),
+	user(User2,_org2,_jdate2,_edate2),
+	User1\=User2,
+	skills(User1,_),not(skills(User2,_1)); 		/*when user2 doesn't have any skill, user1 is more_skilled*/
+	skills(User1,Skill1),skills(User2,Skill1), 	/*skills present in both user1 and user2*/
+	skills_notin1_butin2(User2,User1),			/*skills present in user1 but not user2*/
+	tnot(skills_notin1_butin2(User1,User2)).		/*skills present in user2 but not in user1 are not needed*/
+	
+?-write('\n'),write('Query 4'),write('\n').
+?-more_skilled(X,Y),write('\t'),write(X),write(' more skilled '),write(Y),write('\n'),fail.
+
+/*----------------------------------------------------------------------------------------------------------
+Query5: Finds u1 and u2 such that u1 is more certified than u2.
+-------------------------------------------------------------------------------------------------------------*/
+/*Users whose skills are not endorsed by anyone*/
+skills_not_endorsed(User):-
+	user(User,_org1,_jdate1,_edate1),
+	skills(User,Skill),
+	not(endorse(_,User,Skill)).
+	
+more_certified(User1,User2):-
+	user(User1,_org1,_jdate1,_edate1),
+	user(User2,_org2,_jdate2,_edate2),
+	User1\=User2,
+	more_skilled(User1,User2),
+	tnot(skills_not_endorsed(User1)).
+
+?-write('\n'),write('Query 5'),write('\n').
+?-more_certified(X,Y),write('\t'),write(X),write(' more certified than '),write(Y),write('\n'),fail.
+
+/*---------------------------------------------------------------------------------------------------------
+Query6: Indirect Endorse
+-----------------------------------------------------------------------------------------------------------*/	
+/*Base case of the recursion*/
+indirect_endorse(User1,User2):-
+	endorse(User1,User2,_skill),
+	not(endorse(User2,User1,_skill1)).
+	
+/*recursive statement*/	
+indirect_endorse(User1,User2):-
+	indirect_endorse(User1,User),
+	indirect_endorse(User,User2).
+
+?-write('\n'),write('Query 6'),write('\n').
+?-indirect_endorse(X,Y),write('\t'),write(X),write(' indirectly endorses '),write(Y),write('\n'),fail.
+
+/*---------------------------------------------------------------------------------------------------------
+Query7: skill descending indirect Endorsement
+------------------------------------------------------------------------------------------------------------*/
+/*Base case*/
+indirect_endorse_skill(User1,User2):-
+	endorse(User1,User2,_skill),
+	not(endorse(User2,User1,_skill1)),
+	more_skilled(User1,User2).
+
+/*Recursion*/	
+indirect_endorse_skill(User1,User2):-
+	indirect_endorse_skill(User1,User),
+	indirect_endorse_skill(User,User2).
+	
+?-write('\n'),write('Query 7'),write('\n').
+?-indirect_endorse_skill(X,Y),write('\t'),write(X),write(' indirectly endorses '),write(Y),write('\n'),fail.

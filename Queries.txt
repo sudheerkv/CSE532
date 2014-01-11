@@ -1,0 +1,21 @@
+1. Find all pairs of different users such that user 1 endorsed user 2 for some skill. Furthermore,
+both users must be working for the same organization on September 18, 2013.
+2. Find all pairs of different users such that user 1 endorsed user 2 for a skill that user 1 also has
+and both of these users were endorsed for that same skill by the same third user.
+3. Find all users who do not have a certain skill, but who were endorsed for that skill by at least
+two other users.
+4. Find all pairs of different users u1; u2 such that u1 is more skilled than u2. More skilled here
+means that all of the following conditions apply:
+	u1 has every skill that u2 has.
+	u1 has a skill that u2 does not have.
+Note: this query involves a nontrivial use of negation (tnot).
+5. Find all pairs of users u1; u2 such that u1 is more certified than u2. More certified means that
+all of the following conditions apply:
+	u1 is more skilled than u2.
+	u1 was endorsed for each of his/her skills.
+6. Find all instances of indirect endorsement as follows: x is an indirect endorser of y iff there is a
+chain x = a0, a1, ..., an??1, an = y, where n > 0, such that each ai+1 is (directly) endorsed by ai
+(for some skill), but not the other way around (i.e., ai+1 didn't endorse ai for any skill). The
+answer must be a set of all pairs (x; y) such that y is indirectly endorsed by x.
+7. Similar to the previous query but, in addition, for each 0 <= i < n, ai should be more skilled
+than ai+1.

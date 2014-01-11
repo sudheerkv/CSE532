@@ -1,0 +1,105 @@
+xquery version "3.0" encoding "UTF-8";
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    	targetNamespace="http://www.example.org/UserAccnt" 
+		xmlns:tns="http://www.example.org/UserAccnt" 
+		elementFormDefault="qualified">
+
+	<xs:simpleType name="UserID">
+	    <xs:restriction base="xs:ID">
+	        <xs:pattern value="U[0-9].*"/>
+	    </xs:restriction>
+	</xs:simpleType>
+	
+	<xs:simpleType name="UserIDREF">
+	    <xs:restriction base="xs:IDREF">
+	        <xs:pattern value="U[0-9].*"/>
+	    </xs:restriction>
+	</xs:simpleType>
+	
+	<xs:simpleType name="SkillID">
+	    <xs:restriction base="xs:ID">
+	        <xs:pattern value="S[0-9].*"/>
+	    </xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="SkillIDREF">
+	    <xs:restriction base="xs:IDREF">
+	        <xs:pattern value="S[0-9].*"/>
+	    </xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="SkillIDREFS">
+	    <xs:restriction base="xs:IDREFS">
+	        <xs:pattern value="S[0-9].*"/>
+	    </xs:restriction>
+	</xs:simpleType>
+			
+	<xs:simpleType name="OrgID">
+	    <xs:restriction base="xs:ID">
+	        <xs:pattern value="O[0-9].*"/>
+	    </xs:restriction>
+	</xs:simpleType>
+	
+	<xs:simpleType name="OrgIDREF">
+	    <xs:restriction base="xs:IDREF">
+	        <xs:pattern value="O[0-9].*"/>
+	    </xs:restriction>
+	</xs:simpleType>
+	
+	<xs:complexType name="UserType">
+		<xs:sequence>
+			<xs:element name="UserName" type="xs:string"/>
+		</xs:sequence>
+		<xs:attribute name="URL" use="required" type="tns:UserID" />
+	</xs:complexType>
+	
+	<xs:complexType name="SkillType">
+		<xs:sequence>
+			<xs:element name="SkillName" type="xs:string"/>
+		</xs:sequence>
+		<xs:attribute name="SkillID" use="required" type="tns:SkillID" />
+	</xs:complexType>
+	
+	<xs:complexType name="OrgType">
+		<xs:sequence>
+			<xs:element name="OrgName" type="xs:string"/>
+		</xs:sequence>
+		<xs:attribute name="OrgID" use="required" type="tns:OrgID" />
+	</xs:complexType>
+	
+	<xs:complexType name="Org">
+		<xs:sequence>
+			<xs:element name="Org" type="tns:OrgIDREF"/>
+			<xs:element name="JoinDate" type="xs:date"/>
+			<xs:element name="EndDate" type="xs:date"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="Endorseinfo">
+		<xs:sequence>
+			<xs:element name="UserTypeIDREF" type="tns:UserIDREF"/>
+			<xs:element name="SkillTypeIDREF" type="tns:SkillIDREFS" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="UserData">
+		<xs:sequence>
+			<xs:element name="User" type="tns:UserIDREF" maxOccurs="unbounded"/>
+			<xs:element name="Skills" type="tns:SkillIDREFS" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="Orgs" type="tns:Org" maxOccurs="unbounded"/>
+			<xs:element name="Endorses" type="tns:Endorseinfo" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:element name="LinkedOutDB">
+		<xs:complexType>
+			<xs:sequence maxOccurs="unbounded">
+				<xs:element name="Userinfo" type="tns:UserType" maxOccurs="unbounded"/>
+				<xs:element name="Skillinfo" type="tns:SkillType" maxOccurs="unbounded"/>
+				<xs:element name="Orginfo" type="tns:OrgType" maxOccurs="unbounded"/>
+				<xs:element name="UserData" type="tns:UserData" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+</xs:schema>
